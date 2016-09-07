@@ -1,0 +1,6 @@
+framework module QMapSearchKit {
+  umbrella header "QMapSearchKit.h"
+
+  export *
+  module * { export * }
+}
