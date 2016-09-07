@@ -13,9 +13,11 @@
 #import "ViewController.h"
 #import <QMapKit/QMapKit.h>
 #import <QMapSearchKit/QMapSearchKit.h>
+#import "SearchResultsController.h"
 
 @interface ViewController ()<UITableViewDelegate,UITableViewDataSource,QMapViewDelegate,UISearchResultsUpdating,UISearchControllerDelegate,QMSSearchDelegate>
 @property (nonatomic, strong)UISearchController *searchController;
+@property (nonatomic, strong)SearchResultsController *searchResultsController;
 @property (nonatomic, strong)QMapView *mapView;
 @property (nonatomic, strong)UITableView *topTableView;
 @property (nonatomic, strong)UITableView *tableView;
@@ -34,16 +36,18 @@
     [self.view addSubview:self.topTableView];
 
     //searchBar
-    self.searchController = [[UISearchController alloc] initWithSearchResultsController:[[UITableViewController alloc] init]];
+    self.searchResultsController = [[SearchResultsController alloc] init];
+    self.searchController = [[UISearchController alloc] initWithSearchResultsController:self.searchResultsController];
     self.searchController.searchResultsUpdater = self;
     self.searchController.delegate = self;
+    [self.searchController.searchBar sizeToFit];
+    [self.searchController.searchBar setBarTintColor:[UIColor colorWithRed:247 / 255.0 green:247 / 255.0 blue:247 / 255.0 alpha:1]];
     self.searchController.dimsBackgroundDuringPresentation = YES;
     self.searchController.hidesNavigationBarDuringPresentation = YES;
-    UIView *view = self.searchController.searchBar;
-    view = self.topTableView.tableHeaderView;
     self.searchController.searchBar.frame = CGRectMake(0, 0, SCR_W, SearchBarH);
     self.topTableView.tableHeaderView = self.searchController.searchBar;
     
+    //QMSSearcher
     self.searcher = [[QMSSearcher alloc] init];
     [self.searcher setDelegate:self];
 
@@ -92,13 +96,34 @@
 
 - (void)updateSearchResultsForSearchController:(UISearchController *)searchController
 {
-
+//    QMSPoiSearchOption *poiSearchOption = [[QMSPoiSearchOption alloc] init];
+//    //地区检索
+//    //   [poiSearchOption setBoundaryByRegionWithCityName:@"北京" autoExtend:NO];
+//    //周边检索
+//    [poiSearchOption setBoundaryByNearbyWithCenterCoordinate:CLLocationCoordinate2DMake(39, 116) radius:1000];
+//    //矩形检索
+//    //[poiSearchOption setBoundaryByRectangleWithleftBottomCoordinate:
+//    //CLLocationCoordinate2DMake(39, 116) rightTopCoordinate:
+//    //CLLocationCoordinate2DMake(40, 117)];
+//    //设置检索分类
+//    [poiSearchOption setFilter:@"category=美食"];
+//    [poiSearchOption setKeyword:searchController.searchBar.text];
+//    [self.searcher searchWithPoiSearchOption:poiSearchOption];
+    
+    
+    QMSSuggestionSearchOption *sugSearchOption = [[QMSSuggestionSearchOption alloc] init];
+    [sugSearchOption setKeyword:searchController.searchBar.text];
+    //设置此参数会限制检索城市
+    [sugSearchOption setRegion:@"北京"];
+    //此接口同样支持检索分类
+    [sugSearchOption setFilterByCategories:@"公交站", nil];
+    [self.searcher searchWithSuggestionSearchOption:sugSearchOption];
 }
-
 
 - (void)mapViewWillStartLocatingUser:(QMapView *)mapView
 {
     //开始定位
+    NSLog(@"%@--%@",mapView.region.span,mapView.region.center);
 }
 
 - (void)mapViewDidStopLocatingUser:(QMapView *)mapView
@@ -111,37 +136,10 @@
     //刷新定位
 }
 
-//- (void)searchBar:(UISearchBar *)searchBar textDidChange:(NSString *)searchText
-//{
-//   QMSPoiSearchOption *poiSearchOption = [[QMSPoiSearchOption alloc] init];
-//   //地区检索
-//   [poiSearchOption setBoundaryByRegionWithCityName:@"北京" autoExtend:NO];
-//   //周边检索
-//   //[poiSearchOption setBoundaryByNearbyWithCenterCoordinate:CLLocationCoordinate2DMake(39, 116) radius:1000];
-//   //矩形检索
-//   //[poiSearchOption setBoundaryByRectangleWithleftBottomCoordinate:
-//   //CLLocationCoordinate2DMake(39, 116) rightTopCoordinate:
-//   //CLLocationCoordinate2DMake(40, 117)];
-//   //设置检索分类
-//   [poiSearchOption setFilter:@"category=美食"];
-//   [poiSearchOption setKeyword:searchText];
-//   [self.searcher searchWithPoiSearchOption:poiSearchOption];
-//}
-
-- (void)searchBar:(UISearchBar *)searchBar textDidChange:(NSString *)searchText {
-    QMSSuggestionSearchOption *sugSearchOption = [[QMSSuggestionSearchOption alloc] init];
-    [sugSearchOption setKeyword:searchText];
-    //设置此参数会限制检索城市
-    [sugSearchOption setRegion:@"北京"];
-    //此接口同样支持检索分类
-    [sugSearchOption setFilterByCategories:@"公交站", nil];
-    [self.searcher searchWithSuggestionSearchOption:sugSearchOption];
-}
-
 //查询出现错误
 - (void)searchWithSearchOption:(QMSSearchOption *)searchOption didFailWithError:(NSError*)error
 {
-    
+    NSLog(@"error--%@",error);
 }
 
 //poi查询结果回调函数

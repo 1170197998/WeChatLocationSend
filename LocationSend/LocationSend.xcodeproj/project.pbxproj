@@ -8,6 +8,7 @@
 
 /* Begin PBXBuildFile section */
 		9A2C59AB1D7FB68200BE6EF9 /* QMapSearchKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 9A2C59AA1D7FB68200BE6EF9 /* QMapSearchKit.framework */; };
+		9A2C59B01D80169200BE6EF9 /* SearchResultsController.m in Sources */ = {isa = PBXBuildFile; fileRef = 9A2C59AF1D80169200BE6EF9 /* SearchResultsController.m */; };
 		9A3EF49E1D7EB26900376E15 /* main.m in Sources */ = {isa = PBXBuildFile; fileRef = 9A3EF49D1D7EB26900376E15 /* main.m */; };
 		9A3EF4A11D7EB26900376E15 /* AppDelegate.m in Sources */ = {isa = PBXBuildFile; fileRef = 9A3EF4A01D7EB26900376E15 /* AppDelegate.m */; };
 		9A3EF4A41D7EB26900376E15 /* ViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 9A3EF4A31D7EB26900376E15 /* ViewController.m */; };
@@ -24,6 +25,8 @@
 
 /* Begin PBXFileReference section */
 		9A2C59AA1D7FB68200BE6EF9 /* QMapSearchKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; path = QMapSearchKit.framework; sourceTree = "<group>"; };
+		9A2C59AE1D80169200BE6EF9 /* SearchResultsController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = SearchResultsController.h; sourceTree = "<group>"; };
+		9A2C59AF1D80169200BE6EF9 /* SearchResultsController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = SearchResultsController.m; sourceTree = "<group>"; };
 		9A3EF4991D7EB26800376E15 /* LocationSend.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = LocationSend.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		9A3EF49D1D7EB26900376E15 /* main.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = main.m; sourceTree = "<group>"; };
 		9A3EF49F1D7EB26900376E15 /* AppDelegate.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = AppDelegate.h; sourceTree = "<group>"; };
@@ -89,6 +92,8 @@
 				9A3EF4A01D7EB26900376E15 /* AppDelegate.m */,
 				9A3EF4A21D7EB26900376E15 /* ViewController.h */,
 				9A3EF4A31D7EB26900376E15 /* ViewController.m */,
+				9A2C59AE1D80169200BE6EF9 /* SearchResultsController.h */,
+				9A2C59AF1D80169200BE6EF9 /* SearchResultsController.m */,
 				9A3EF4A51D7EB26900376E15 /* Main.storyboard */,
 				9A3EF4A81D7EB26900376E15 /* Assets.xcassets */,
 				9A3EF4AA1D7EB26900376E15 /* LaunchScreen.storyboard */,
@@ -187,6 +192,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				9A2C59B01D80169200BE6EF9 /* SearchResultsController.m in Sources */,
 				9A3EF4A41D7EB26900376E15 /* ViewController.m in Sources */,
 				9A3EF4A11D7EB26900376E15 /* AppDelegate.m in Sources */,
 				9A3EF49E1D7EB26900376E15 /* main.m in Sources */,
