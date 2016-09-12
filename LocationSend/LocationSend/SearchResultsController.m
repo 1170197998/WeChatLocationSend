@@ -59,7 +59,7 @@
 
 - (void)tableView:(UITableView *)tableView didSelectRowAtIndexPath:(NSIndexPath *)indexPath
 {
-    
+    [self.dataArray objectAtIndex:indexPath.row].location;
 }
 
 

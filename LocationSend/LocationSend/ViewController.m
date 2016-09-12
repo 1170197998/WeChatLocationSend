@@ -25,7 +25,7 @@
 @property (nonatomic, strong)UITableView *tableView;
 @property (nonatomic, strong)NSArray <QMSPoiData*>* dataArray;
 @property (nonatomic, strong)QMSSearcher *searcher;
-
+@property (nonatomic, strong)QPointAnnotation *pointAnntation;
 @end
 
 @implementation ViewController
@@ -44,7 +44,7 @@
         _searchController.dimsBackgroundDuringPresentation = YES;
         _searchController.delegate = self;
         [_searchController.searchBar sizeToFit];
-        _searchController.searchBar.placeholder = @"请输入搜索内容";
+        _searchController.searchBar.placeholder = @"搜索地点";
         self.topTableView.tableHeaderView = self.searchController.searchBar;
     }
     return _searchController;
@@ -68,12 +68,17 @@
     self.mapView.delegate = self;
     [self.view addSubview:self.mapView];
     [self.mapView setShowsUserLocation:YES];
+    [self.mapView setUserTrackingMode:QUserTrackingModeFollowWithHeading animated:YES];
     
     //tableView
     self.tableView = [[UITableView alloc] initWithFrame:CGRectMake(0, 244 + 64, self.view.bounds.size.width, self.view.bounds.size.height - 244 - 64) style:UITableViewStylePlain];
     self.tableView.dataSource = self;
     self.tableView.delegate = self;
     [self.view addSubview:self.tableView];
+    
+    //大头针
+    _pointAnntation = [[QPointAnnotation alloc] init];
+    [self.mapView addAnnotation:_pointAnntation];
 }
 
 
@@ -92,6 +97,13 @@
     cell.detailTextLabel.text = self.dataArray[indexPath.row].address;
     return cell;
 }
+
+- (void)tableView:(UITableView *)tableView didSelectRowAtIndexPath:(NSIndexPath *)indexPath
+{
+    _pointAnntation.coordinate = [self.dataArray objectAtIndex:indexPath.row].location;
+}
+
+
 
 //将要输入
 - (void)willPresentSearchController:(UISearchController *)searchController
@@ -132,7 +144,7 @@
     
 }
 
-//刷新定位,一直自动调用
+//刷新定位,只要位置发生变化就会调用
 - (void)mapView:(QMapView *)mapView didUpdateUserLocation:(QUserLocation *)userLocation updatingLocation:(BOOL)updatingLocation
 {
     _coordinate = userLocation.location.coordinate;
@@ -140,14 +152,9 @@
     //周边检索
     [poiSearchOption setBoundaryByNearbyWithCenterCoordinate:userLocation.location.coordinate radius:1000];
     [self.searcher searchWithPoiSearchOption:poiSearchOption];
-    //定义pointAnnotation
-    QPointAnnotation *yinke = [[QPointAnnotation alloc] init];
-    yinke.coordinate = userLocation.location.coordinate;
-    //向mapview添加annotation
-    [self.mapView addAnnotation:yinke];
+    _pointAnntation.coordinate = userLocation.location.coordinate;
     //设置当前位置在屏幕中央
     mapView.centerCoordinate = _coordinate;
-
 }
 
 //查询出现错误
@@ -178,16 +185,11 @@
             annotationView = [[QPinAnnotationView alloc] initWithAnnotation:annotation reuseIdentifier:pointReuseIndentifier];
         }
         //显示气泡，默认NO
-        annotationView.canShowCallout = YES;
+        annotationView.canShowCallout = NO;
         //设置大头针颜色
         annotationView.pinColor = QPinAnnotationColorRed;
-        //添加左侧信息窗附件
-        UIButton *btn = [UIButton buttonWithType:UIButtonTypeDetailDisclosure];
-        annotationView.leftCalloutAccessoryView = btn;
         //可以拖动
         annotationView.draggable = YES;
-        //自定义annotation图标
-        //UIImage *image1 = [UIImage imageWithContentsOfFile:path1];
         return annotationView;
     }
     return nil;
