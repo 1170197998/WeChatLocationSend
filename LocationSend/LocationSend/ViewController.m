@@ -14,17 +14,41 @@
 #import <QMapKit/QMapKit.h>
 #import <QMapSearchKit/QMapSearchKit.h>
 #import "SearchResultsController.h"
-
 @interface ViewController ()<UITableViewDelegate,UITableViewDataSource,QMapViewDelegate,UISearchResultsUpdating,UISearchControllerDelegate,QMSSearchDelegate>
+{
+    CLLocationCoordinate2D _coordinate;
+}
 @property (nonatomic, strong)UISearchController *searchController;
 @property (nonatomic, strong)SearchResultsController *searchResultsController;
 @property (nonatomic, strong)QMapView *mapView;
 @property (nonatomic, strong)UITableView *topTableView;
 @property (nonatomic, strong)UITableView *tableView;
+@property (nonatomic, strong)NSArray <QMSPoiData*>* dataArray;
 @property (nonatomic, strong)QMSSearcher *searcher;
+
 @end
 
 @implementation ViewController
+
+- (SearchResultsController *)searchResultsController {
+    if (_searchResultsController == nil) {
+        _searchResultsController = [[SearchResultsController alloc]init];
+    }
+    return _searchResultsController;
+}
+
+- (UISearchController *)searchController {
+    if (_searchController == nil) {
+        _searchController = [[UISearchController alloc]initWithSearchResultsController:self.searchResultsController];
+        _searchController.searchResultsUpdater = self;
+        _searchController.dimsBackgroundDuringPresentation = YES;
+        _searchController.delegate = self;
+        [_searchController.searchBar sizeToFit];
+        _searchController.searchBar.placeholder = @"请输入搜索内容";
+        self.topTableView.tableHeaderView = self.searchController.searchBar;
+    }
+    return _searchController;
+}
 
 - (void)viewDidLoad {
     [super viewDidLoad];
@@ -34,18 +58,6 @@
     self.topTableView.tableFooterView = [[UIView alloc] init];
     self.topTableView.scrollEnabled = NO;
     [self.view addSubview:self.topTableView];
-
-    //searchBar
-    self.searchResultsController = [[SearchResultsController alloc] init];
-    self.searchController = [[UISearchController alloc] initWithSearchResultsController:self.searchResultsController];
-    self.searchController.searchResultsUpdater = self;
-    self.searchController.delegate = self;
-    [self.searchController.searchBar sizeToFit];
-    [self.searchController.searchBar setBarTintColor:[UIColor colorWithRed:247 / 255.0 green:247 / 255.0 blue:247 / 255.0 alpha:1]];
-    self.searchController.dimsBackgroundDuringPresentation = YES;
-    self.searchController.hidesNavigationBarDuringPresentation = YES;
-    self.searchController.searchBar.frame = CGRectMake(0, 0, SCR_W, SearchBarH);
-    self.topTableView.tableHeaderView = self.searchController.searchBar;
     
     //QMSSearcher
     self.searcher = [[QMSSearcher alloc] init];
@@ -64,20 +76,24 @@
     [self.view addSubview:self.tableView];
 }
 
+
 - (NSInteger)tableView:(UITableView *)tableView numberOfRowsInSection:(NSInteger)section
 {
-    return 20;
+    return self.dataArray.count;
 }
 
 - (UITableViewCell *)tableView:(UITableView *)tableView cellForRowAtIndexPath:(NSIndexPath *)indexPath
 {
     UITableViewCell *cell = [tableView dequeueReusableCellWithIdentifier:@"ID"];
     if (!cell) {
-        cell = [[UITableViewCell alloc] initWithStyle:UITableViewCellStyleDefault reuseIdentifier:@"ID"];
+        cell = [[UITableViewCell alloc] initWithStyle:UITableViewCellStyleSubtitle reuseIdentifier:@"ID"];
     }
+    cell.textLabel.text = self.dataArray[indexPath.row].title;
+    cell.detailTextLabel.text = self.dataArray[indexPath.row].address;
     return cell;
 }
 
+//将要输入
 - (void)willPresentSearchController:(UISearchController *)searchController
 {
     [UIView animateWithDuration:0.25 animations:^{
@@ -86,6 +102,7 @@
     }];
 }
 
+//将要推出搜索框
 - (void)willDismissSearchController:(UISearchController *)searchController
 {
     [UIView animateWithDuration:0.25 animations:^{
@@ -94,46 +111,43 @@
     }];
 }
 
+//正在输入
 - (void)updateSearchResultsForSearchController:(UISearchController *)searchController
 {
-//    QMSPoiSearchOption *poiSearchOption = [[QMSPoiSearchOption alloc] init];
-//    //地区检索
-//    //   [poiSearchOption setBoundaryByRegionWithCityName:@"北京" autoExtend:NO];
-//    //周边检索
-//    [poiSearchOption setBoundaryByNearbyWithCenterCoordinate:CLLocationCoordinate2DMake(39, 116) radius:1000];
-//    //矩形检索
-//    //[poiSearchOption setBoundaryByRectangleWithleftBottomCoordinate:
-//    //CLLocationCoordinate2DMake(39, 116) rightTopCoordinate:
-//    //CLLocationCoordinate2DMake(40, 117)];
-//    //设置检索分类
-//    [poiSearchOption setFilter:@"category=美食"];
-//    [poiSearchOption setKeyword:searchController.searchBar.text];
-//    [self.searcher searchWithPoiSearchOption:poiSearchOption];
-    
-    
     QMSSuggestionSearchOption *sugSearchOption = [[QMSSuggestionSearchOption alloc] init];
     [sugSearchOption setKeyword:searchController.searchBar.text];
-    //设置此参数会限制检索城市
-    [sugSearchOption setRegion:@"北京"];
-    //此接口同样支持检索分类
-    [sugSearchOption setFilterByCategories:@"公交站", nil];
     [self.searcher searchWithSuggestionSearchOption:sugSearchOption];
 }
 
+
+//开始定位
 - (void)mapViewWillStartLocatingUser:(QMapView *)mapView
 {
-    //开始定位
-    NSLog(@"%@--%@",mapView.region.span,mapView.region.center);
+    NSLog(@"%f--%f--%f--%f",mapView.centerCoordinate.latitude,mapView.centerCoordinate.longitude,mapView.region.center.latitude,mapView.region.center.longitude);
 }
 
+//结束定位
 - (void)mapViewDidStopLocatingUser:(QMapView *)mapView
 {
-    //结束定位
+    
 }
 
+//刷新定位,一直自动调用
 - (void)mapView:(QMapView *)mapView didUpdateUserLocation:(QUserLocation *)userLocation updatingLocation:(BOOL)updatingLocation
 {
-    //刷新定位
+    _coordinate = userLocation.location.coordinate;
+    QMSPoiSearchOption *poiSearchOption = [[QMSPoiSearchOption alloc] init];
+    //周边检索
+    [poiSearchOption setBoundaryByNearbyWithCenterCoordinate:userLocation.location.coordinate radius:1000];
+    [self.searcher searchWithPoiSearchOption:poiSearchOption];
+    //定义pointAnnotation
+    QPointAnnotation *yinke = [[QPointAnnotation alloc] init];
+    yinke.coordinate = userLocation.location.coordinate;
+    //向mapview添加annotation
+    [self.mapView addAnnotation:yinke];
+    //设置当前位置在屏幕中央
+    mapView.centerCoordinate = _coordinate;
+
 }
 
 //查询出现错误
@@ -147,15 +161,48 @@
 {
     for (QMSPoiData *data in poiSearchResult.dataArray) {
         NSLog(@"%@-- %@-- %@",data.title,data.address,data.tel);
+        self.dataArray = poiSearchResult.dataArray;
+        [self.tableView reloadData];
     }
 }
 
+
+- (QAnnotationView *)mapView:(QMapView *)mapView viewForAnnotation:(id<QAnnotation>)annotation
+{
+    static NSString *pointReuseIndentifier = @"pointReuseIdentifier";
+    
+    if ([annotation isKindOfClass:[QPointAnnotation class]]) {
+        
+        QPinAnnotationView *annotationView = (QPinAnnotationView *)[mapView dequeueReusableAnnotationViewWithIdentifier:pointReuseIndentifier];
+        if (annotationView == nil) {
+            annotationView = [[QPinAnnotationView alloc] initWithAnnotation:annotation reuseIdentifier:pointReuseIndentifier];
+        }
+        //显示气泡，默认NO
+        annotationView.canShowCallout = YES;
+        //设置大头针颜色
+        annotationView.pinColor = QPinAnnotationColorRed;
+        //添加左侧信息窗附件
+        UIButton *btn = [UIButton buttonWithType:UIButtonTypeDetailDisclosure];
+        annotationView.leftCalloutAccessoryView = btn;
+        //可以拖动
+        annotationView.draggable = YES;
+        //自定义annotation图标
+        //UIImage *image1 = [UIImage imageWithContentsOfFile:path1];
+        return annotationView;
+    }
+    return nil;
+}
+
+//关键字的补完与提示回调接口
 - (void)searchWithSuggestionSearchOption:(QMSSuggestionSearchOption *) suggestionSearchOption didReceiveResult:(QMSSuggestionResult *)suggestionSearchResult
 {
     for (QMSSuggestionPoiData *data in suggestionSearchResult.dataArray) {
         NSLog(@"%@-- %@-- %@",data.title,data.address,data.district);
+        [[NSNotificationCenter defaultCenter] postNotificationName:@"name" object:nil userInfo:@{@"data":suggestionSearchResult.dataArray}];
     }
 }
+
+
 
 - (IBAction)send:(UIBarButtonItem *)sender {
     
