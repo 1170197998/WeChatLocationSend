@@ -56,10 +56,10 @@
     return cell;
 }
 
-
 - (void)tableView:(UITableView *)tableView didSelectRowAtIndexPath:(NSIndexPath *)indexPath
 {
-    [self.dataArray objectAtIndex:indexPath.row].location;
+    [[NSNotificationCenter defaultCenter] postNotificationName:@"name2" object:nil userInfo:@{@"data":[self.dataArray objectAtIndex:indexPath.row]}];
+    [self dismissViewControllerAnimated:YES completion:nil];
 }
 
 

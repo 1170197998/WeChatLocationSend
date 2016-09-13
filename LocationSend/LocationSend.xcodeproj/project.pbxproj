@@ -21,6 +21,7 @@
 		9A3EF4D61D7ED68B00376E15 /* CoreLocation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 9A3EF4D51D7ED68B00376E15 /* CoreLocation.framework */; };
 		9A3EF4D81D7ED69300376E15 /* SystemConfiguration.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 9A3EF4D71D7ED69300376E15 /* SystemConfiguration.framework */; };
 		9A3EF4DA1D7ED69D00376E15 /* libz.tbd in Frameworks */ = {isa = PBXBuildFile; fileRef = 9A3EF4D91D7ED69C00376E15 /* libz.tbd */; };
+		9A870DDF1D87A2C100548E24 /* dtz.jpg in Resources */ = {isa = PBXBuildFile; fileRef = 9A870DDE1D87A2C100548E24 /* dtz.jpg */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -43,6 +44,7 @@
 		9A3EF4D51D7ED68B00376E15 /* CoreLocation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreLocation.framework; path = System/Library/Frameworks/CoreLocation.framework; sourceTree = SDKROOT; };
 		9A3EF4D71D7ED69300376E15 /* SystemConfiguration.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = SystemConfiguration.framework; path = System/Library/Frameworks/SystemConfiguration.framework; sourceTree = SDKROOT; };
 		9A3EF4D91D7ED69C00376E15 /* libz.tbd */ = {isa = PBXFileReference; lastKnownFileType = "sourcecode.text-based-dylib-definition"; name = libz.tbd; path = usr/lib/libz.tbd; sourceTree = SDKROOT; };
+		9A870DDE1D87A2C100548E24 /* dtz.jpg */ = {isa = PBXFileReference; lastKnownFileType = image.jpeg; path = dtz.jpg; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -65,6 +67,7 @@
 		9A3EF4901D7EB26800376E15 = {
 			isa = PBXGroup;
 			children = (
+				9A870DDE1D87A2C100548E24 /* dtz.jpg */,
 				9A3EF4D91D7ED69C00376E15 /* libz.tbd */,
 				9A3EF4D71D7ED69300376E15 /* SystemConfiguration.framework */,
 				9A3EF4D51D7ED68B00376E15 /* CoreLocation.framework */,
@@ -180,6 +183,7 @@
 			files = (
 				9A3EF4AC1D7EB26900376E15 /* LaunchScreen.storyboard in Resources */,
 				9A3EF4D21D7ED51B00376E15 /* QMapKit.bundle in Resources */,
+				9A870DDF1D87A2C100548E24 /* dtz.jpg in Resources */,
 				9A3EF4A91D7EB26900376E15 /* Assets.xcassets in Resources */,
 				9A3EF4A71D7EB26900376E15 /* Main.storyboard in Resources */,
 			);

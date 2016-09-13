@@ -7,6 +7,8 @@
 //
 
 #define SCR_W (self.view.bounds.size.width)
+#define SCR_H (self.view.bounds.size.height)
+
 #define SearchBarH 44
 #define MapViewH 200
 
@@ -14,10 +16,9 @@
 #import <QMapKit/QMapKit.h>
 #import <QMapSearchKit/QMapSearchKit.h>
 #import "SearchResultsController.h"
+
 @interface ViewController ()<UITableViewDelegate,UITableViewDataSource,QMapViewDelegate,UISearchResultsUpdating,UISearchControllerDelegate,QMSSearchDelegate>
-{
-    CLLocationCoordinate2D _coordinate;
-}
+
 @property (nonatomic, strong)UISearchController *searchController;
 @property (nonatomic, strong)SearchResultsController *searchResultsController;
 @property (nonatomic, strong)QMapView *mapView;
@@ -25,7 +26,12 @@
 @property (nonatomic, strong)UITableView *tableView;
 @property (nonatomic, strong)NSArray <QMSPoiData*>* dataArray;
 @property (nonatomic, strong)QMSSearcher *searcher;
-@property (nonatomic, strong)QPointAnnotation *pointAnntation;
+@property (nonatomic,strong)UIImageView *imageViewAnntation;
+
+@property (nonatomic,assign)BOOL isRefresh;
+
+/** 大头针数据 */
+//@property (nonatomic, strong)QPointAnnotation *pointAnntation;
 @end
 
 @implementation ViewController
@@ -68,7 +74,8 @@
     self.mapView.delegate = self;
     [self.view addSubview:self.mapView];
     [self.mapView setShowsUserLocation:YES];
-    [self.mapView setUserTrackingMode:QUserTrackingModeFollowWithHeading animated:YES];
+    [self.mapView setUserTrackingMode:QUserTrackingModeFollow animated:YES];
+    _mapView.distanceFilter = kCLLocationAccuracyNearestTenMeters;
     
     //tableView
     self.tableView = [[UITableView alloc] initWithFrame:CGRectMake(0, 244 + 64, self.view.bounds.size.width, self.view.bounds.size.height - 244 - 64) style:UITableViewStylePlain];
@@ -76,11 +83,29 @@
     self.tableView.delegate = self;
     [self.view addSubview:self.tableView];
     
-    //大头针
-    _pointAnntation = [[QPointAnnotation alloc] init];
-    [self.mapView addAnnotation:_pointAnntation];
+    self.imageViewAnntation = [[UIImageView alloc] initWithFrame:CGRectMake(0, 0, 30, 50)];
+    self.imageViewAnntation.center = self.mapView.center;
+    self.imageViewAnntation.image = [UIImage imageNamed:@"dtz.jpg"];
+    self.imageViewAnntation.backgroundColor = [UIColor clearColor];
+    [self.view addSubview:self.imageViewAnntation];
+    
+    [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(refreshData:) name:@"name2" object:nil];
 }
 
+
+- (void)refreshData:(NSNotification *)notification
+{
+    QMSSuggestionPoiData *data = (notification.userInfo[@"data"]);
+    CLLocationCoordinate2D center = data.location;
+    [self.mapView setCenterCoordinate:center animated:YES];
+    self.searchController.searchBar.text = nil;
+    [self willDismissSearchController:self.searchController];
+}
+
+- (void)dealloc
+{
+    [[NSNotificationCenter defaultCenter] removeObserver:self];
+}
 
 - (NSInteger)tableView:(UITableView *)tableView numberOfRowsInSection:(NSInteger)section
 {
@@ -100,10 +125,10 @@
 
 - (void)tableView:(UITableView *)tableView didSelectRowAtIndexPath:(NSIndexPath *)indexPath
 {
-    _pointAnntation.coordinate = [self.dataArray objectAtIndex:indexPath.row].location;
+    CLLocationCoordinate2D center = [self.dataArray objectAtIndex:indexPath.row].location;
+    [self.mapView setCenterCoordinate:center animated:YES];
+    self.isRefresh = NO;
 }
-
-
 
 //将要输入
 - (void)willPresentSearchController:(UISearchController *)searchController
@@ -111,6 +136,7 @@
     [UIView animateWithDuration:0.25 animations:^{
         self.mapView.frame = CGRectMake(0, 64, self.view.bounds.size.width, 200);
         self.tableView.frame = CGRectMake(0, CGRectGetMaxY(self.mapView.frame), self.view.bounds.size.width, self.view.bounds.size.height - 244 - 64);
+        self.imageViewAnntation.center = self.mapView.center;
     }];
 }
 
@@ -120,10 +146,11 @@
     [UIView animateWithDuration:0.25 animations:^{
         self.mapView.frame = CGRectMake(0, self.searchController.searchBar.frame.size.height + 64, self.view.bounds.size.width, 200);
         self.tableView.frame = CGRectMake(0, CGRectGetMaxY(self.mapView.frame), self.view.bounds.size.width, self.view.bounds.size.height - 244 - 64);
+        self.imageViewAnntation.center = self.mapView.center;
     }];
 }
 
-//正在输入
+//搜索框正在输入
 - (void)updateSearchResultsForSearchController:(UISearchController *)searchController
 {
     QMSSuggestionSearchOption *sugSearchOption = [[QMSSuggestionSearchOption alloc] init];
@@ -147,14 +174,12 @@
 //刷新定位,只要位置发生变化就会调用
 - (void)mapView:(QMapView *)mapView didUpdateUserLocation:(QUserLocation *)userLocation updatingLocation:(BOOL)updatingLocation
 {
-    _coordinate = userLocation.location.coordinate;
     QMSPoiSearchOption *poiSearchOption = [[QMSPoiSearchOption alloc] init];
     //周边检索
     [poiSearchOption setBoundaryByNearbyWithCenterCoordinate:userLocation.location.coordinate radius:1000];
     [self.searcher searchWithPoiSearchOption:poiSearchOption];
-    _pointAnntation.coordinate = userLocation.location.coordinate;
-    //设置当前位置在屏幕中央
-    mapView.centerCoordinate = _coordinate;
+    self.isRefresh = YES;
+    NSLog(@"123456--------------------------------------------------------------------");
 }
 
 //查询出现错误
@@ -166,33 +191,27 @@
 //poi查询结果回调函数
 - (void)searchWithPoiSearchOption:(QMSPoiSearchOption *)poiSearchOption didReceiveResult:(QMSPoiSearchResult *)poiSearchResult
 {
-    for (QMSPoiData *data in poiSearchResult.dataArray) {
-        NSLog(@"%@-- %@-- %@",data.title,data.address,data.tel);
-        self.dataArray = poiSearchResult.dataArray;
-        [self.tableView reloadData];
+    if (self.isRefresh) {
+        for (QMSPoiData *data in poiSearchResult.dataArray) {
+            NSLog(@"%@-- %@-- %@",data.title,data.address,data.tel);
+            self.dataArray = poiSearchResult.dataArray;
+            [self.tableView reloadData];
+        }
     }
 }
 
-
-- (QAnnotationView *)mapView:(QMapView *)mapView viewForAnnotation:(id<QAnnotation>)annotation
+//mapView移动后执行
+- (void)mapView:(QMapView *)mapView regionDidChangeAnimated:(BOOL)animated
 {
-    static NSString *pointReuseIndentifier = @"pointReuseIdentifier";
-    
-    if ([annotation isKindOfClass:[QPointAnnotation class]]) {
-        
-        QPinAnnotationView *annotationView = (QPinAnnotationView *)[mapView dequeueReusableAnnotationViewWithIdentifier:pointReuseIndentifier];
-        if (annotationView == nil) {
-            annotationView = [[QPinAnnotationView alloc] initWithAnnotation:annotation reuseIdentifier:pointReuseIndentifier];
-        }
-        //显示气泡，默认NO
-        annotationView.canShowCallout = NO;
-        //设置大头针颜色
-        annotationView.pinColor = QPinAnnotationColorRed;
-        //可以拖动
-        annotationView.draggable = YES;
-        return annotationView;
-    }
-    return nil;
+    QCoordinateRegion region;
+    CLLocationCoordinate2D centerCoordinate = mapView.region.center;
+    region.center= centerCoordinate;
+    QMSPoiSearchOption *poiSearchOption = [[QMSPoiSearchOption alloc] init];
+    //周边检索
+    [poiSearchOption setBoundaryByNearbyWithCenterCoordinate:centerCoordinate radius:1000];
+    [self.searcher searchWithPoiSearchOption:poiSearchOption];
+    self.isRefresh = YES;
+    NSLog(@" regionDidChangeAnimated %f,%f",centerCoordinate.latitude, centerCoordinate.longitude);
 }
 
 //关键字的补完与提示回调接口
@@ -204,10 +223,9 @@
     }
 }
 
-
-
 - (IBAction)send:(UIBarButtonItem *)sender {
-    
+    CLLocationCoordinate2D center = self.mapView.userLocation.coordinate;
+    [self.mapView setCenterCoordinate:center animated:YES];
 }
 
 - (void)didReceiveMemoryWarning {
