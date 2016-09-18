@@ -13,7 +13,7 @@
 
 @interface SearchResultsController ()<UITableViewDelegate,UITableViewDataSource>
 @property (nonatomic,strong)UITableView *tableView;
-@property (nonatomic,strong)NSArray <QMSSuggestionPoiData*>* dataArray;
+@property (nonatomic,strong)NSArray <QMSSuggestionPoiData*>* dataSource;
 @end
 
 @implementation SearchResultsController
@@ -37,12 +37,12 @@
 
 - (void)refreshData:(NSNotification *)notification
 {
-    self.dataArray = (notification.userInfo[@"data"]);
+    self.dataSource = (notification.userInfo[@"data"]);
     [self.tableView reloadData];
 }
 
 - (NSInteger)tableView:(UITableView *)tableView numberOfRowsInSection:(NSInteger)section {
-    return self.dataArray.count;
+    return self.dataSource.count;
 }
 
 - (UITableViewCell *)tableView:(UITableView *)tableView cellForRowAtIndexPath:(NSIndexPath *)indexPath
@@ -51,14 +51,14 @@
     if (!cell) {
         cell = [[UITableViewCell alloc] initWithStyle:UITableViewCellStyleSubtitle reuseIdentifier:@"123"];
     }
-    cell.textLabel.text = self.dataArray[indexPath.row].title;
-    cell.detailTextLabel.text = self.dataArray[indexPath.row].address;
+    cell.textLabel.text = self.dataSource[indexPath.row].title;
+    cell.detailTextLabel.text = self.dataSource[indexPath.row].address;
     return cell;
 }
 
 - (void)tableView:(UITableView *)tableView didSelectRowAtIndexPath:(NSIndexPath *)indexPath
 {
-    [[NSNotificationCenter defaultCenter] postNotificationName:@"name2" object:nil userInfo:@{@"data":[self.dataArray objectAtIndex:indexPath.row]}];
+    [[NSNotificationCenter defaultCenter] postNotificationName:@"name2" object:nil userInfo:@{@"data":[self.dataSource objectAtIndex:indexPath.row]}];
     [self dismissViewControllerAnimated:YES completion:nil];
 }
 

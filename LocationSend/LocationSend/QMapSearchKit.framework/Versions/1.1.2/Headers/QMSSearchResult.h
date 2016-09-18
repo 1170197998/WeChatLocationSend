@@ -104,7 +104,7 @@ typedef NS_ENUM(NSInteger, QMSPoiType)
 /*!
  *  @brief  搜索结果POI数组，每项为一个POI(QMSPoiData)对象
  */
-@property (nonatomic, strong) NSArray *dataArray;
+@property (nonatomic, strong) NSMutableArray *dataArray;
 
 @end
 

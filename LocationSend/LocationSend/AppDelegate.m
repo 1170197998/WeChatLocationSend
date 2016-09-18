@@ -25,7 +25,6 @@
     [QMapServices sharedServices].apiKey = TencentKey;
     [[QMSSearchServices sharedServices] setApiKey:TencentKey];
 
-    
     return YES;
 }
 
