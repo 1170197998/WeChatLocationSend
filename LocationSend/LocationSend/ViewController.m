@@ -28,7 +28,6 @@
 @property (nonatomic, strong)QMSSearcher *searcher;
 @property (nonatomic, strong)UIImageView *imageViewAnntation;
 @property (nonatomic, strong)NSObject *object;
-@property (nonatomic, strong)NSObject *objectMove;
 @property (nonatomic, assign)NSInteger pageIndex;
 @end
 
@@ -85,6 +84,12 @@
     [self.mapView setShowsUserLocation:YES];
     [self.mapView setUserTrackingMode:QUserTrackingModeFollow animated:YES];
     _mapView.distanceFilter = kCLLocationAccuracyNearestTenMeters;
+    UIButton *buttonReset = [[UIButton alloc] initWithFrame:CGRectMake(SCR_W - 50, self.mapView.frame.size.height - 50, 40, 30)];
+    buttonReset.backgroundColor = [UIColor grayColor];
+    [buttonReset setTitle:@"复位" forState:UIControlStateNormal];
+    buttonReset.titleLabel.font = [UIFont systemFontOfSize:14];
+    [buttonReset addTarget:self action:@selector(clickResetButton) forControlEvents:UIControlEventTouchUpInside];
+    [self.mapView addSubview:buttonReset];
     
     //tableView
     self.tableView = [[UITableView alloc] initWithFrame:CGRectMake(0, 244 + 64, self.view.bounds.size.width, self.view.bounds.size.height - 244 - 64) style:UITableViewStylePlain];
@@ -112,6 +117,12 @@
     [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(refreshData:) name:@"name2" object:nil];
 }
 
+- (void)clickResetButton
+{
+    CLLocationCoordinate2D center = self.mapView.userLocation.coordinate;
+    [self.mapView setCenterCoordinate:center animated:YES];
+}
+
 - (void)loadPastData
 {
     [self.tableView.mj_footer endRefreshing];
@@ -125,7 +136,6 @@
     [poiSearchOption setBoundaryByNearbyWithCenterCoordinate:centerCoordinate radius:1000];
     [self.searcher searchWithPoiSearchOption:poiSearchOption];
 }
-
 
 - (void)refreshData:(NSNotification *)notification
 {
@@ -236,7 +246,7 @@
 {
     //手动滑动地图定位
     if (self.object == nil) {
-        [self.dataList removeAllObjects];
+        self.pageIndex = 1;
         QCoordinateRegion region;
         CLLocationCoordinate2D centerCoordinate = mapView.region.center;
         region.center= centerCoordinate;
@@ -244,10 +254,10 @@
         poiSearchOption.page_size = 20;
         [poiSearchOption setBoundaryByNearbyWithCenterCoordinate:centerCoordinate radius:1000];
         [self.searcher searchWithPoiSearchOption:poiSearchOption];
+        [self.tableView setContentOffset:CGPointMake(0, 0) animated:NO];
         NSLog(@" regionDidChangeAnimated %f,%f",centerCoordinate.latitude, centerCoordinate.longitude);
     } else {
         self.object = nil;
-        self.objectMove = [[NSObject alloc] init];
     }
 }
 
@@ -257,14 +267,14 @@
     for (QMSPoiData *data in poiSearchResult.dataArray) {
         NSLog(@"%@-- %@-- %@",data.title,data.address,data.tel);
     }
+    
     //手滑动重新复制数据源
-//    if (self.pageIndex == 1) {
-//        self.dataList = poiSearchResult.dataArray;
-//        [self.tableView reloadData];
-//    } else {
+    if (self.pageIndex == 1) {
+        self.dataList = [NSMutableArray arrayWithArray:poiSearchResult.dataArray];
+    } else {
         [self.dataList addObjectsFromArray:poiSearchResult.dataArray];
-        [self.tableView reloadData];
-//    }
+    }
+    [self.tableView reloadData];
 }
 
 //关键字的补完与提示回调接口
@@ -276,9 +286,9 @@
     [[NSNotificationCenter defaultCenter] postNotificationName:@"name" object:nil userInfo:@{@"data":suggestionSearchResult.dataArray}];
 }
 
-- (IBAction)send:(UIBarButtonItem *)sender {
-    CLLocationCoordinate2D center = self.mapView.userLocation.coordinate;
-    [self.mapView setCenterCoordinate:center animated:YES];
+- (IBAction)send:(UIBarButtonItem *)sender
+{
+    NSLog(@"%f--%f",self.mapView.centerCoordinate.latitude,self.mapView.centerCoordinate.longitude);
 }
 
 - (void)didReceiveMemoryWarning {
