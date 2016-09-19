@@ -103,7 +103,7 @@
 		9A3EF4D51D7ED68B00376E15 /* CoreLocation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreLocation.framework; path = System/Library/Frameworks/CoreLocation.framework; sourceTree = SDKROOT; };
 		9A3EF4D71D7ED69300376E15 /* SystemConfiguration.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = SystemConfiguration.framework; path = System/Library/Frameworks/SystemConfiguration.framework; sourceTree = SDKROOT; };
 		9A3EF4D91D7ED69C00376E15 /* libz.tbd */ = {isa = PBXFileReference; lastKnownFileType = "sourcecode.text-based-dylib-definition"; name = libz.tbd; path = usr/lib/libz.tbd; sourceTree = SDKROOT; };
-		9A870DDE1D87A2C100548E24 /* dtz.jpg */ = {isa = PBXFileReference; lastKnownFileType = image.jpeg; path = dtz.jpg; sourceTree = "<group>"; };
+		9A870DDE1D87A2C100548E24 /* dtz.jpg */ = {isa = PBXFileReference; lastKnownFileType = image.jpeg; name = dtz.jpg; path = ../dtz.jpg; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -219,12 +219,8 @@
 		9A3EF4901D7EB26800376E15 = {
 			isa = PBXGroup;
 			children = (
+				9AEA85461D8FC50B00A86638 /* reply */,
 				9A23AA631D8E48ED0077F37E /* MJRefresh */,
-				9A870DDE1D87A2C100548E24 /* dtz.jpg */,
-				9A3EF4D91D7ED69C00376E15 /* libz.tbd */,
-				9A3EF4D71D7ED69300376E15 /* SystemConfiguration.framework */,
-				9A3EF4D51D7ED68B00376E15 /* CoreLocation.framework */,
-				9A3EF4D31D7ED68300376E15 /* QuartzCore.framework */,
 				9A3EF4D01D7ED51B00376E15 /* Resources */,
 				9A3EF49B1D7EB26900376E15 /* LocationSend */,
 				9A3EF49A1D7EB26800376E15 /* Products */,
@@ -262,6 +258,7 @@
 		9A3EF49C1D7EB26900376E15 /* Supporting Files */ = {
 			isa = PBXGroup;
 			children = (
+				9A870DDE1D87A2C100548E24 /* dtz.jpg */,
 				9A3EF49D1D7EB26900376E15 /* main.m */,
 			);
 			name = "Supporting Files";
@@ -274,6 +271,17 @@
 			);
 			name = Resources;
 			path = LocationSend/QMapKit.framework/Versions/1.2.4/Resources;
+			sourceTree = "<group>";
+		};
+		9AEA85461D8FC50B00A86638 /* reply */ = {
+			isa = PBXGroup;
+			children = (
+				9A3EF4D91D7ED69C00376E15 /* libz.tbd */,
+				9A3EF4D71D7ED69300376E15 /* SystemConfiguration.framework */,
+				9A3EF4D51D7ED68B00376E15 /* CoreLocation.framework */,
+				9A3EF4D31D7ED68300376E15 /* QuartzCore.framework */,
+			);
+			name = reply;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
