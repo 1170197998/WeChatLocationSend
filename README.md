@@ -1,3 +1,4 @@
+#博客地址:http://blog.csdn.net/feng2qing?viewmode=list
 #实现微信发送位置效果
 ##功能简介:
 ###定位当前位置,支持拖拽,缩放
