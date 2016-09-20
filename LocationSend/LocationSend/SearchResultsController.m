@@ -10,7 +10,7 @@
 #define SCR_H (self.view.bounds.size.height)
 #import "SearchResultsController.h"
 #import <QMapSearchKit/QMapSearchKit.h>
-
+#import "MJRefresh.h"
 @interface SearchResultsController ()<UITableViewDelegate,UITableViewDataSource>
 @property (nonatomic,strong)UITableView *tableView;
 @property (nonatomic,strong)NSArray <QMSSuggestionPoiData*>* dataSource;
@@ -27,6 +27,18 @@
     self.tableView.tableFooterView = [[UIView alloc] init];
     self.tableView.keyboardDismissMode = UIScrollViewKeyboardDismissModeOnDrag;
     [self.view addSubview:self.tableView];
+    
+    MJRefreshAutoNormalFooter *footer = [MJRefreshAutoNormalFooter footerWithRefreshingTarget:self refreshingAction:@selector(loadPastData)];
+    self.tableView.mj_footer = footer;
+    [footer setTitle:@"" forState:MJRefreshStateIdle];
+    [footer setTitle:@"" forState:MJRefreshStatePulling];
+    [footer setTitle:@"正在刷新数据" forState:MJRefreshStateRefreshing];
+    // 设置字体
+    footer.stateLabel.font = [UIFont systemFontOfSize:14];
+    // 设置颜色
+    footer.stateLabel.textColor = [UIColor blackColor];
+    [self.tableView.mj_header beginRefreshing];
+
     [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(refreshData:) name:@"name" object:nil];
 }
 
@@ -34,6 +46,21 @@
 {
     [[NSNotificationCenter defaultCenter] removeObserver:self];
 }
+
+- (void)loadPastData
+{
+//    [self.tableView.mj_footer endRefreshing];
+//    QCoordinateRegion region;
+//    CLLocationCoordinate2D centerCoordinate = self.mapView.region.center;
+//    region.center= centerCoordinate;
+//    QMSPoiSearchOption *poiSearchOption = [[QMSPoiSearchOption alloc] init];
+//    poiSearchOption.page_size = 20;
+//    self.pageIndex ++;
+//    poiSearchOption.page_index = self.pageIndex;
+//    [poiSearchOption setBoundaryByNearbyWithCenterCoordinate:centerCoordinate radius:1000];
+//    [self.searcher searchWithPoiSearchOption:poiSearchOption];
+}
+
 
 - (void)refreshData:(NSNotification *)notification
 {

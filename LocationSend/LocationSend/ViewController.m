@@ -29,6 +29,11 @@
 @property (nonatomic, strong)UIImageView *imageViewAnntation;
 @property (nonatomic, strong)NSObject *object;
 @property (nonatomic, assign)NSInteger pageIndex;
+
+/**
+ 是否需要定位,每次启动获取当前位置
+ */
+@property (nonatomic, assign)BOOL isNeedLocation;
 @end
 
 @implementation ViewController
@@ -78,7 +83,7 @@
     [self.searcher setDelegate:self];
 
     //mapView
-    self.mapView = [[QMapView alloc] initWithFrame:CGRectMake(0, self.searchController.searchBar.frame.size.height + 64, self.view.bounds.size.width, 200)];
+    self.mapView = [[QMapView alloc] initWithFrame:CGRectMake(0, self.searchController.searchBar.frame.size.height + 64, self.view.bounds.size.width, MapViewH)];
     self.mapView.delegate = self;
     [self.view addSubview:self.mapView];
     [self.mapView setShowsUserLocation:YES];
@@ -92,7 +97,7 @@
     [self.mapView addSubview:buttonReset];
     
     //tableView
-    self.tableView = [[UITableView alloc] initWithFrame:CGRectMake(0, 244 + 64, self.view.bounds.size.width, self.view.bounds.size.height - 244 - 64) style:UITableViewStylePlain];
+    self.tableView = [[UITableView alloc] initWithFrame:CGRectMake(0, MapViewH + SearchBarH + 64, self.view.bounds.size.width, self.view.bounds.size.height - MapViewH - SearchBarH - 64) style:UITableViewStylePlain];
     self.tableView.dataSource = self;
     self.tableView.delegate = self;
     [self.view addSubview:self.tableView];
@@ -115,6 +120,18 @@
     [self.view addSubview:self.imageViewAnntation];
     
     [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(refreshData:) name:@"name2" object:nil];
+}
+
+- (void)viewWillAppear:(BOOL)animated
+{
+    [super viewWillAppear:animated];
+    self.isNeedLocation = YES;
+}
+
+- (void)viewWillDisappear:(BOOL)animated
+{
+    [super viewWillDisappear:animated];
+    self.isNeedLocation = NO;
 }
 
 - (void)clickResetButton
@@ -183,8 +200,8 @@
 - (void)willPresentSearchController:(UISearchController *)searchController
 {
     [UIView animateWithDuration:0.25 animations:^{
-        self.mapView.frame = CGRectMake(0, 64, self.view.bounds.size.width, 200);
-        self.tableView.frame = CGRectMake(0, CGRectGetMaxY(self.mapView.frame), self.view.bounds.size.width, self.view.bounds.size.height - 244 - 64);
+        self.mapView.frame = CGRectMake(0, 64, self.view.bounds.size.width, MapViewH);
+        self.tableView.frame = CGRectMake(0, CGRectGetMaxY(self.mapView.frame), self.view.bounds.size.width, self.view.bounds.size.height - MapViewH - SearchBarH - 64);
         self.imageViewAnntation.center = self.mapView.center;
     }];
 }
@@ -193,8 +210,8 @@
 - (void)willDismissSearchController:(UISearchController *)searchController
 {
     [UIView animateWithDuration:0.25 animations:^{
-        self.mapView.frame = CGRectMake(0, self.searchController.searchBar.frame.size.height + 64, self.view.bounds.size.width, 200);
-        self.tableView.frame = CGRectMake(0, CGRectGetMaxY(self.mapView.frame), self.view.bounds.size.width, self.view.bounds.size.height - 244 - 64);
+        self.mapView.frame = CGRectMake(0, self.searchController.searchBar.frame.size.height + 64, self.view.bounds.size.width, MapViewH);
+        self.tableView.frame = CGRectMake(0, CGRectGetMaxY(self.mapView.frame), self.view.bounds.size.width, self.view.bounds.size.height - MapViewH - SearchBarH - 64);
         self.imageViewAnntation.center = self.mapView.center;
     }];
 }
@@ -225,12 +242,13 @@
 {
     static dispatch_once_t onceToken;
     dispatch_once(&onceToken, ^{
-        if (updatingLocation) {
-            QMSPoiSearchOption *poiSearchOption = [[QMSPoiSearchOption alloc] init];
-            poiSearchOption.page_size = 20;
-            [poiSearchOption setBoundaryByNearbyWithCenterCoordinate:userLocation.location.coordinate radius:1000];
-            [self.searcher searchWithPoiSearchOption:poiSearchOption];
-            NSLog(@"123456--------------------------------------------------------------------");
+        if (self.isNeedLocation) {
+            if (updatingLocation) {
+                QMSPoiSearchOption *poiSearchOption = [[QMSPoiSearchOption alloc] init];
+                poiSearchOption.page_size = 20;
+                [poiSearchOption setBoundaryByNearbyWithCenterCoordinate:userLocation.location.coordinate radius:1000];
+                [self.searcher searchWithPoiSearchOption:poiSearchOption];
+            }
         }
     });
 }
