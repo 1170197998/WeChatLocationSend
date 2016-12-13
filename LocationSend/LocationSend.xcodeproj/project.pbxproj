@@ -42,6 +42,7 @@
 		9A3EF4D81D7ED69300376E15 /* SystemConfiguration.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 9A3EF4D71D7ED69300376E15 /* SystemConfiguration.framework */; };
 		9A3EF4DA1D7ED69D00376E15 /* libz.tbd in Frameworks */ = {isa = PBXBuildFile; fileRef = 9A3EF4D91D7ED69C00376E15 /* libz.tbd */; };
 		9A870DDF1D87A2C100548E24 /* dtz.jpg in Resources */ = {isa = PBXBuildFile; fileRef = 9A870DDE1D87A2C100548E24 /* dtz.jpg */; };
+		9AAD6DCC1DFFF3580030F151 /* greenPin_lift.png in Resources */ = {isa = PBXBuildFile; fileRef = 9AAD6DCB1DFFF3580030F151 /* greenPin_lift.png */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -104,6 +105,7 @@
 		9A3EF4D71D7ED69300376E15 /* SystemConfiguration.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = SystemConfiguration.framework; path = System/Library/Frameworks/SystemConfiguration.framework; sourceTree = SDKROOT; };
 		9A3EF4D91D7ED69C00376E15 /* libz.tbd */ = {isa = PBXFileReference; lastKnownFileType = "sourcecode.text-based-dylib-definition"; name = libz.tbd; path = usr/lib/libz.tbd; sourceTree = SDKROOT; };
 		9A870DDE1D87A2C100548E24 /* dtz.jpg */ = {isa = PBXFileReference; lastKnownFileType = image.jpeg; name = dtz.jpg; path = ../dtz.jpg; sourceTree = "<group>"; };
+		9AAD6DCB1DFFF3580030F151 /* greenPin_lift.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; name = greenPin_lift.png; path = QMapKit.bundle/images/greenPin_lift.png; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -267,6 +269,7 @@
 		9A3EF4D01D7ED51B00376E15 /* Resources */ = {
 			isa = PBXGroup;
 			children = (
+				9AAD6DCB1DFFF3580030F151 /* greenPin_lift.png */,
 				9A3EF4D11D7ED51B00376E15 /* QMapKit.bundle */,
 			);
 			name = Resources;
@@ -344,6 +347,7 @@
 			files = (
 				9A3EF4AC1D7EB26900376E15 /* LaunchScreen.storyboard in Resources */,
 				9A23AA5E1D8E45E20077F37E /* MJRefresh in Resources */,
+				9AAD6DCC1DFFF3580030F151 /* greenPin_lift.png in Resources */,
 				9A23AA9E1D8E48ED0077F37E /* MJRefresh.bundle in Resources */,
 				9A3EF4D21D7ED51B00376E15 /* QMapKit.bundle in Resources */,
 				9A870DDF1D87A2C100548E24 /* dtz.jpg in Resources */,
