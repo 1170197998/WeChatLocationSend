@@ -6,22 +6,31 @@
 //  Copyright © 2016年 Cocav. All rights reserved.
 //
 
-#define SCR_W (self.view.bounds.size.width)
-#define SCR_H (self.view.bounds.size.height)
+#define SCREEN_WIDTH (self.view.bounds.size.width)
+#define SCREEN_HEIGHT (self.view.bounds.size.height)
 #import "SearchResultsController.h"
 #import <QMapSearchKit/QMapSearchKit.h>
 #import "MJRefresh.h"
 @interface SearchResultsController ()<UITableViewDelegate,UITableViewDataSource>
 @property (nonatomic,strong)UITableView *tableView;
-@property (nonatomic,strong)NSArray <QMSSuggestionPoiData*>* dataSource;
+@property (nonatomic,strong)NSMutableArray <QMSPoiData*>* dataSource;
 @end
 
 @implementation SearchResultsController
 
+- (NSMutableArray<QMSPoiData *> *)dataSource
+{
+    if (!_dataSource) {
+        _dataSource = [NSMutableArray array];
+    }
+    return _dataSource;
+}
+
 - (void)viewDidLoad {
     [super viewDidLoad];
+    
     self.automaticallyAdjustsScrollViewInsets = false;
-    self.tableView = [[UITableView alloc] initWithFrame:CGRectMake(0, 64, SCR_W, SCR_H - 64) style:UITableViewStylePlain];
+    self.tableView = [[UITableView alloc] initWithFrame:CGRectMake(0, 64, SCREEN_WIDTH, SCREEN_HEIGHT - 64) style:UITableViewStylePlain];
     self.tableView.dataSource = self;
     self.tableView.delegate = self;
     self.tableView.tableFooterView = [[UIView alloc] init];
@@ -37,9 +46,14 @@
     footer.stateLabel.font = [UIFont systemFontOfSize:14];
     // 设置颜色
     footer.stateLabel.textColor = [UIColor blackColor];
-    [self.tableView.mj_header beginRefreshing];
+    
+    [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(refreshData:) name:SearchResultGetPoiSearchResult object:nil];
+}
 
-    [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(refreshData:) name:@"name" object:nil];
+- (void)viewWillAppear:(BOOL)animated
+{
+    [super viewWillAppear:animated];
+    self.pageIndex = 1;
 }
 
 - (void)dealloc
@@ -49,22 +63,25 @@
 
 - (void)loadPastData
 {
-//    [self.tableView.mj_footer endRefreshing];
-//    QCoordinateRegion region;
-//    CLLocationCoordinate2D centerCoordinate = self.mapView.region.center;
-//    region.center= centerCoordinate;
-//    QMSPoiSearchOption *poiSearchOption = [[QMSPoiSearchOption alloc] init];
-//    poiSearchOption.page_size = 20;
-//    self.pageIndex ++;
-//    poiSearchOption.page_index = self.pageIndex;
-//    [poiSearchOption setBoundaryByNearbyWithCenterCoordinate:centerCoordinate radius:1000];
-//    [self.searcher searchWithPoiSearchOption:poiSearchOption];
+    [self.tableView.mj_footer endRefreshing];
+    if (self.dataSource.count == 0) {
+        self.pageIndex = 1;
+    } else {
+        self.pageIndex = self.pageIndex + 1;
+    }
+    self.searchResultsPage(self.pageIndex);
 }
-
 
 - (void)refreshData:(NSNotification *)notification
 {
-    self.dataSource = (notification.userInfo[@"data"]);
+    NSArray *array = (notification.userInfo[@"data"]);
+    if (self.pageIndex == 1) {
+        [self.dataSource removeAllObjects];
+        self.dataSource = [NSMutableArray arrayWithArray:array];
+        [self.tableView setContentOffset:CGPointMake(0, 0)];
+    } else {
+        [self.dataSource addObjectsFromArray:array];
+    }
     [self.tableView reloadData];
 }
 
@@ -85,9 +102,13 @@
 
 - (void)tableView:(UITableView *)tableView didSelectRowAtIndexPath:(NSIndexPath *)indexPath
 {
-    [[NSNotificationCenter defaultCenter] postNotificationName:@"name2" object:nil userInfo:@{@"data":[self.dataSource objectAtIndex:indexPath.row]}];
+    [[NSNotificationCenter defaultCenter] postNotificationName:SearchResultsControllerDidSelectRow object:nil userInfo:@{@"data":[self.dataSource objectAtIndex:indexPath.row]}];
     [self dismissViewControllerAnimated:YES completion:nil];
 }
 
+- (void)didReceiveMemoryWarning {
+    [super didReceiveMemoryWarning];
+    // Dispose of any resources that can be recreated.
+}
 
 @end

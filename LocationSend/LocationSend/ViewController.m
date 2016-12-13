@@ -6,11 +6,14 @@
 //  Copyright © 2016年 Cocav. All rights reserved.
 //
 
-#define SCR_W (self.view.bounds.size.width)
+#define SCREEN_WIDTH (self.view.bounds.size.width)
 #define SCR_H (self.view.bounds.size.height)
 
 #define SearchBarH 44
 #define MapViewH 200
+
+#define StatusBar_HEIGHT 20
+#define NavigationBar_HEIGHT 44
 
 #import "ViewController.h"
 #import <QMapKit/QMapKit.h>
@@ -19,21 +22,20 @@
 #import "MJRefresh.h"
 
 @interface ViewController ()<UITableViewDelegate,UITableViewDataSource,QMapViewDelegate,UISearchResultsUpdating,UISearchControllerDelegate,QMSSearchDelegate>
-@property (nonatomic, strong)UISearchController *searchController;
-@property (nonatomic, strong)SearchResultsController *searchResultsController;
-@property (nonatomic, strong)QMapView *mapView;
-@property (nonatomic, strong)UITableView *topTableView;
-@property (nonatomic, strong)UITableView *tableView;
-@property (nonatomic, strong)NSMutableArray <QMSPoiData*>* dataList;
-@property (nonatomic, strong)QMSSearcher *searcher;
-@property (nonatomic, strong)UIImageView *imageViewAnntation;
-@property (nonatomic, strong)NSObject *object;
-@property (nonatomic, assign)NSInteger pageIndex;
-
-/**
- 是否需要定位,每次启动获取当前位置
- */
-@property (nonatomic, assign)BOOL isNeedLocation;
+@property (nonatomic,strong)UISearchController *searchController;
+@property (nonatomic,strong)SearchResultsController *searchResultsController;
+@property (nonatomic,strong)QMapView *mapView;
+@property (nonatomic,strong)UITableView *topTableView;
+@property (nonatomic,strong)UITableView *tableView;
+@property (nonatomic,strong)NSMutableArray <QMSPoiData*>* dataList;
+@property (nonatomic,strong)QMSSearcher *searcher;
+@property (nonatomic,strong)UIImageView *imageViewAnntation;
+@property (nonatomic,strong)NSObject *object;
+@property (nonatomic,assign)NSInteger pageIndex;
+@property (nonatomic,strong)NSNumber *secondPageIndex;
+@property (nonatomic,assign)BOOL isNeedLocation;
+@property (nonatomic,assign)NSInteger isSearchPage; //1:YES  2:NO
+@property (nonatomic,strong)QMSReGeoCodeAdInfo *currentAddressInfo;
 @end
 
 @implementation ViewController
@@ -66,38 +68,84 @@
     return _dataList;
 }
 
-- (void)viewDidLoad {
+- (void)viewDidLoad
+{
     [super viewDidLoad];
-    
+    self.navigationController.navigationBar.translucent = YES;
     self.pageIndex = 1;
-    self.object = [[NSObject alloc] init];
+    self.navigationItem.leftBarButtonItem = [[UIBarButtonItem alloc] initWithTitle:@"返回" style:UIBarButtonItemStyleDone target:self action:@selector(clickLeftBarButtonItem)];
+    self.navigationItem.rightBarButtonItem = [[UIBarButtonItem alloc] initWithTitle:@"发送" style:UIBarButtonItemStyleDone target:self action:@selector(clickRightBarButtonItem)];
     
+    [self setTopTableView];
+    [self setMapView];
+    [self setMainTableView];
+    
+    [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(refreshData:) name:SearchResultsControllerDidSelectRow object:nil];
+    
+    __weak typeof (self) weakSelf = self;
+    self.searchResultsController.searchResultsPage = ^(NSInteger page) {
+        weakSelf.secondPageIndex = @(page);
+        weakSelf.isSearchPage = 1;
+        QMSPoiSearchOption *poiSearchOption = [[QMSPoiSearchOption alloc] init];
+        poiSearchOption.keyword = weakSelf.searchController.searchBar.text;
+        NSString *boundary = [NSString stringWithFormat:@"%@%@%@",@"region(",weakSelf.currentAddressInfo.province,@",1)"];
+        poiSearchOption.boundary = boundary;   //@"region(北京,1)"
+        poiSearchOption.page_size = 20;
+        poiSearchOption.page_index = weakSelf.secondPageIndex == nil ? 1 : [weakSelf.secondPageIndex integerValue];
+        [weakSelf.searcher searchWithPoiSearchOption:poiSearchOption];
+    };
+}
+
+- (void)clickLeftBarButtonItem
+{
+    [self dismissViewControllerAnimated:YES completion:nil];
+}
+
+- (void)clickRightBarButtonItem
+{
+    [self dismissViewControllerAnimated:YES completion:nil];
+    //发送位置时截图
+    [self.mapView takeSnapshotInRect:self.mapView.bounds withCompletionBlock:^(UIImage *resultImage, CGRect rect) {
+        //resultImage是截取好的图片,上传到服务器,接收方显示
+    }];
+    NSLog(@"%f--%f",self.mapView.centerCoordinate.latitude,self.mapView.centerCoordinate.longitude);
+}
+
+- (void)setTopTableView
+{
     //topTableView(专门放置搜索框)
     self.topTableView = [[UITableView alloc] initWithFrame:CGRectMake(0, 0, self.view.bounds.size.width, 110) style:UITableViewStylePlain];
     self.topTableView.tableFooterView = [[UIView alloc] init];
     self.topTableView.scrollEnabled = NO;
+    self.topTableView.tableHeaderView = self.searchController.searchBar;
     [self.view addSubview:self.topTableView];
     
     //QMSSearcher
     self.searcher = [[QMSSearcher alloc] init];
     [self.searcher setDelegate:self];
+}
 
+- (void)setMapView
+{
     //mapView
     self.mapView = [[QMapView alloc] initWithFrame:CGRectMake(0, self.searchController.searchBar.frame.size.height + 64, self.view.bounds.size.width, MapViewH)];
     self.mapView.delegate = self;
     [self.view addSubview:self.mapView];
     [self.mapView setShowsUserLocation:YES];
+    self.mapView.showsScale = YES;
     [self.mapView setUserTrackingMode:QUserTrackingModeFollow animated:YES];
     _mapView.distanceFilter = kCLLocationAccuracyNearestTenMeters;
-    UIButton *buttonReset = [[UIButton alloc] initWithFrame:CGRectMake(SCR_W - 50, self.mapView.frame.size.height - 50, 40, 30)];
+    UIButton *buttonReset = [[UIButton alloc] initWithFrame:CGRectMake(SCREEN_WIDTH - 50, self.mapView.frame.size.height - 50, 40, 30)];
     buttonReset.backgroundColor = [UIColor grayColor];
     [buttonReset setTitle:@"复位" forState:UIControlStateNormal];
     buttonReset.titleLabel.font = [UIFont systemFontOfSize:14];
     [buttonReset addTarget:self action:@selector(clickResetButton) forControlEvents:UIControlEventTouchUpInside];
     [self.mapView addSubview:buttonReset];
-    
-    //tableView
-    self.tableView = [[UITableView alloc] initWithFrame:CGRectMake(0, MapViewH + SearchBarH + 64, self.view.bounds.size.width, self.view.bounds.size.height - MapViewH - SearchBarH - 64) style:UITableViewStylePlain];
+}
+
+- (void)setMainTableView
+{
+    self.tableView = [[UITableView alloc] initWithFrame:CGRectMake(0, CGRectGetMaxY(self.mapView.frame), self.view.bounds.size.width, self.view.bounds.size.height - MapViewH - SearchBarH - NavigationBar_HEIGHT - StatusBar_HEIGHT) style:UITableViewStylePlain];
     self.tableView.dataSource = self;
     self.tableView.delegate = self;
     [self.view addSubview:self.tableView];
@@ -107,31 +155,31 @@
     [footer setTitle:@"" forState:MJRefreshStateIdle];
     [footer setTitle:@"" forState:MJRefreshStatePulling];
     [footer setTitle:@"正在刷新数据" forState:MJRefreshStateRefreshing];
-    // 设置字体
     footer.stateLabel.font = [UIFont systemFontOfSize:14];
-    // 设置颜色
     footer.stateLabel.textColor = [UIColor blackColor];
     [self.tableView.mj_header beginRefreshing];
     
     self.imageViewAnntation = [[UIImageView alloc] initWithFrame:CGRectMake(0, 0, 30, 50)];
     self.imageViewAnntation.center = self.mapView.center;
-    self.imageViewAnntation.image = [UIImage imageNamed:@"dtz.jpg"];
+    self.imageViewAnntation.image = [UIImage imageNamed:@"greenPin_lift"];
     self.imageViewAnntation.backgroundColor = [UIColor clearColor];
     [self.view addSubview:self.imageViewAnntation];
-    
-    [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(refreshData:) name:@"name2" object:nil];
 }
 
 - (void)viewWillAppear:(BOOL)animated
 {
     [super viewWillAppear:animated];
     self.isNeedLocation = YES;
+    self.object = [[NSObject alloc] init];
 }
 
 - (void)viewWillDisappear:(BOOL)animated
 {
     [super viewWillDisappear:animated];
     self.isNeedLocation = NO;
+    self.object = nil;
+    [self.dataList removeAllObjects];
+    [self.mapView.delegate mapViewDidStopLocatingUser:self.mapView];
 }
 
 - (void)clickResetButton
@@ -146,6 +194,7 @@
     QCoordinateRegion region;
     CLLocationCoordinate2D centerCoordinate = self.mapView.region.center;
     region.center= centerCoordinate;
+    self.isSearchPage = 2;
     QMSPoiSearchOption *poiSearchOption = [[QMSPoiSearchOption alloc] init];
     poiSearchOption.page_size = 20;
     self.pageIndex ++;
@@ -160,7 +209,9 @@
     CLLocationCoordinate2D center = data.location;
     [self.mapView setCenterCoordinate:center animated:YES];
     self.searchController.searchBar.text = nil;
+    self.isSearchPage = 2;
     QMSPoiSearchOption *poiSearchOption = [[QMSPoiSearchOption alloc] init];
+    poiSearchOption.page_size = 20;
     [poiSearchOption setBoundaryByNearbyWithCenterCoordinate:data.location radius:1000];
     [self.searcher searchWithPoiSearchOption:poiSearchOption];
     [self willDismissSearchController:self.searchController];
@@ -179,9 +230,9 @@
 
 - (UITableViewCell *)tableView:(UITableView *)tableView cellForRowAtIndexPath:(NSIndexPath *)indexPath
 {
-    UITableViewCell *cell = [tableView dequeueReusableCellWithIdentifier:@"ID"];
+    UITableViewCell *cell = [tableView dequeueReusableCellWithIdentifier:@"Identifier"];
     if (!cell) {
-        cell = [[UITableViewCell alloc] initWithStyle:UITableViewCellStyleSubtitle reuseIdentifier:@"ID"];
+        cell = [[UITableViewCell alloc] initWithStyle:UITableViewCellStyleSubtitle reuseIdentifier:@"Identifier"];
     }
     cell.textLabel.text = self.dataList[indexPath.row].title;
     cell.detailTextLabel.text = self.dataList[indexPath.row].address;
@@ -201,12 +252,12 @@
 {
     [UIView animateWithDuration:0.25 animations:^{
         self.mapView.frame = CGRectMake(0, 64, self.view.bounds.size.width, MapViewH);
-        self.tableView.frame = CGRectMake(0, CGRectGetMaxY(self.mapView.frame), self.view.bounds.size.width, self.view.bounds.size.height - MapViewH - SearchBarH - 64);
+        self.tableView.frame = CGRectMake(0, CGRectGetMaxY(self.mapView.frame), self.view.bounds.size.width, self.view.bounds.size.height - MapViewH - 64);
         self.imageViewAnntation.center = self.mapView.center;
     }];
 }
 
-//将要推出搜索框
+//将要退出搜索框
 - (void)willDismissSearchController:(UISearchController *)searchController
 {
     [UIView animateWithDuration:0.25 animations:^{
@@ -219,9 +270,15 @@
 //搜索框正在输入
 - (void)updateSearchResultsForSearchController:(UISearchController *)searchController
 {
-    QMSSuggestionSearchOption *sugSearchOption = [[QMSSuggestionSearchOption alloc] init];
-    [sugSearchOption setKeyword:searchController.searchBar.text];
-    [self.searcher searchWithSuggestionSearchOption:sugSearchOption];
+    self.isSearchPage = 1;
+    QMSPoiSearchOption *poiSearchOption = [[QMSPoiSearchOption alloc] init];
+    poiSearchOption.keyword = searchController.searchBar.text;
+    NSString *boundary = [NSString stringWithFormat:@"%@%@%@",@"region(",self.currentAddressInfo.province,@",1)"];
+    poiSearchOption.boundary = boundary;   //@"region(北京,1)"
+    poiSearchOption.page_size = 20;
+    poiSearchOption.page_index = 1;
+    self.searchResultsController.pageIndex = 1;
+    [self.searcher searchWithPoiSearchOption:poiSearchOption];
 }
 
 #pragma mark - QMapViewDelegate
@@ -229,6 +286,10 @@
 - (void)mapViewWillStartLocatingUser:(QMapView *)mapView
 {
     NSLog(@"%f--%f--%f--%f",mapView.centerCoordinate.latitude,mapView.centerCoordinate.longitude,mapView.region.center.latitude,mapView.region.center.longitude);
+    QMSReverseGeoCodeSearchOption *regeocoder = [[QMSReverseGeoCodeSearchOption alloc] init];
+    regeocoder.location = [NSString stringWithFormat:@"%f,%f",mapView.region.center.latitude,mapView.region.center.longitude];
+    [regeocoder setCoord_type:QMSReverseGeoCodeCoordinateTencentGoogleGaodeType];
+    [self.searcher searchWithReverseGeoCodeSearchOption:regeocoder];
 }
 
 //结束定位
@@ -240,23 +301,29 @@
 //刷新定位,只要位置发生变化就会调用
 - (void)mapView:(QMapView *)mapView didUpdateUserLocation:(QUserLocation *)userLocation updatingLocation:(BOOL)updatingLocation
 {
-    static dispatch_once_t onceToken;
-    dispatch_once(&onceToken, ^{
-        if (self.isNeedLocation) {
-            if (updatingLocation) {
-                QMSPoiSearchOption *poiSearchOption = [[QMSPoiSearchOption alloc] init];
-                poiSearchOption.page_size = 20;
-                [poiSearchOption setBoundaryByNearbyWithCenterCoordinate:userLocation.location.coordinate radius:1000];
-                [self.searcher searchWithPoiSearchOption:poiSearchOption];
-            }
+    if (self.isNeedLocation) {
+        if (updatingLocation) {
+            self.isSearchPage = 2;
+            QMSPoiSearchOption *poiSearchOption = [[QMSPoiSearchOption alloc] init];
+            poiSearchOption.page_size = 20;
+            [poiSearchOption setBoundaryByNearbyWithCenterCoordinate:userLocation.location.coordinate radius:1000];
+            [self.searcher searchWithPoiSearchOption:poiSearchOption];
         }
-    });
+        self.isNeedLocation = NO;
+    }
+}
+
+//定位失败
+- (void)mapView:(QMapView *)mapView didFailToLocateUserWithError:(NSError *)error
+{
+    NSLog(@"didFailToLocateUserWithError--error--%@",error);
+    
 }
 
 //查询出现错误
 - (void)searchWithSearchOption:(QMSSearchOption *)searchOption didFailWithError:(NSError*)error
 {
-    NSLog(@"error--%@",error);
+    NSLog(@"searchWithSearchOption--error--%@",error);
 }
 
 //mapView移动后执行
@@ -268,12 +335,12 @@
         QCoordinateRegion region;
         CLLocationCoordinate2D centerCoordinate = mapView.region.center;
         region.center= centerCoordinate;
+        self.isSearchPage = 2;
         QMSPoiSearchOption *poiSearchOption = [[QMSPoiSearchOption alloc] init];
         poiSearchOption.page_size = 20;
         [poiSearchOption setBoundaryByNearbyWithCenterCoordinate:centerCoordinate radius:1000];
         [self.searcher searchWithPoiSearchOption:poiSearchOption];
         [self.tableView setContentOffset:CGPointMake(0, 0) animated:NO];
-        NSLog(@" regionDidChangeAnimated %f,%f",centerCoordinate.latitude, centerCoordinate.longitude);
     } else {
         self.object = nil;
     }
@@ -286,27 +353,27 @@
         NSLog(@"%@-- %@-- %@",data.title,data.address,data.tel);
     }
     
-    //手滑动重新复制数据源
-    if (self.pageIndex == 1) {
-        self.dataList = [NSMutableArray arrayWithArray:poiSearchResult.dataArray];
-    } else {
-        [self.dataList addObjectsFromArray:poiSearchResult.dataArray];
+    //根据本页地图返回的结果
+    if (self.isSearchPage == 2) {
+        //手滑动重新赋值数据源
+        if (self.pageIndex == 1) {
+            [self.dataList removeAllObjects];
+            self.dataList = [NSMutableArray arrayWithArray:poiSearchResult.dataArray];
+        } else {
+            [self.dataList addObjectsFromArray:poiSearchResult.dataArray];
+        }
+        [self.tableView reloadData];
     }
-    [self.tableView reloadData];
+    //搜索控制器根据关键词返回的结果
+    if (self.isSearchPage == 1) {
+        [[NSNotificationCenter defaultCenter] postNotificationName:SearchResultGetPoiSearchResult object:nil userInfo:@{@"data":poiSearchResult.dataArray}];
+    }
 }
 
-//关键字的补完与提示回调接口
-- (void)searchWithSuggestionSearchOption:(QMSSuggestionSearchOption *) suggestionSearchOption didReceiveResult:(QMSSuggestionResult *)suggestionSearchResult
+//根据定位当前的经纬度编码出当前位置信息
+- (void)searchWithReverseGeoCodeSearchOption:(QMSReverseGeoCodeSearchOption *)reverseGeoCodeSearchOption didReceiveResult:(QMSReverseGeoCodeSearchResult *)reverseGeoCodeSearchResult
 {
-    for (QMSSuggestionPoiData *data in suggestionSearchResult.dataArray) {
-        NSLog(@"%@-- %@-- %@",data.title,data.address,data.district);
-    }
-    [[NSNotificationCenter defaultCenter] postNotificationName:@"name" object:nil userInfo:@{@"data":suggestionSearchResult.dataArray}];
-}
-
-- (IBAction)send:(UIBarButtonItem *)sender
-{
-    NSLog(@"%f--%f",self.mapView.centerCoordinate.latitude,self.mapView.centerCoordinate.longitude);
+    self.currentAddressInfo = reverseGeoCodeSearchResult.ad_info;
 }
 
 - (void)didReceiveMemoryWarning {
