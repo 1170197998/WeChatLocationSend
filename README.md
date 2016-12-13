@@ -8,6 +8,5 @@
 ###将当前位置或制定位置发送
 
 #DEMO效果
-![Mou icon](http://g.recordit.co/H9slmpgk6o.gif)
 ![Mou icon](http://g.recordit.co/Br2vv3DWd1.gif)
 
