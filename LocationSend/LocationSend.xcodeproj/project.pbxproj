@@ -7,7 +7,6 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		9A23AA5E1D8E45E20077F37E /* MJRefresh in Resources */ = {isa = PBXBuildFile; fileRef = 9A23AA5D1D8E45E20077F37E /* MJRefresh */; };
 		9A23AA901D8E48ED0077F37E /* MJRefreshAutoFooter.m in Sources */ = {isa = PBXBuildFile; fileRef = 9A23AA661D8E48ED0077F37E /* MJRefreshAutoFooter.m */; };
 		9A23AA911D8E48ED0077F37E /* MJRefreshBackFooter.m in Sources */ = {isa = PBXBuildFile; fileRef = 9A23AA681D8E48ED0077F37E /* MJRefreshBackFooter.m */; };
 		9A23AA921D8E48ED0077F37E /* MJRefreshComponent.m in Sources */ = {isa = PBXBuildFile; fileRef = 9A23AA6A1D8E48ED0077F37E /* MJRefreshComponent.m */; };
@@ -22,7 +21,6 @@
 		9A23AA9B1D8E48ED0077F37E /* MJRefreshGifHeader.m in Sources */ = {isa = PBXBuildFile; fileRef = 9A23AA811D8E48ED0077F37E /* MJRefreshGifHeader.m */; };
 		9A23AA9C1D8E48ED0077F37E /* MJRefreshNormalHeader.m in Sources */ = {isa = PBXBuildFile; fileRef = 9A23AA831D8E48ED0077F37E /* MJRefreshNormalHeader.m */; };
 		9A23AA9D1D8E48ED0077F37E /* MJRefreshStateHeader.m in Sources */ = {isa = PBXBuildFile; fileRef = 9A23AA851D8E48ED0077F37E /* MJRefreshStateHeader.m */; };
-		9A23AA9E1D8E48ED0077F37E /* MJRefresh.bundle in Resources */ = {isa = PBXBuildFile; fileRef = 9A23AA861D8E48ED0077F37E /* MJRefresh.bundle */; };
 		9A23AA9F1D8E48ED0077F37E /* MJRefreshConst.m in Sources */ = {isa = PBXBuildFile; fileRef = 9A23AA891D8E48ED0077F37E /* MJRefreshConst.m */; };
 		9A23AAA01D8E48ED0077F37E /* UIScrollView+MJExtension.m in Sources */ = {isa = PBXBuildFile; fileRef = 9A23AA8B1D8E48ED0077F37E /* UIScrollView+MJExtension.m */; };
 		9A23AAA11D8E48ED0077F37E /* UIScrollView+MJRefresh.m in Sources */ = {isa = PBXBuildFile; fileRef = 9A23AA8D1D8E48ED0077F37E /* UIScrollView+MJRefresh.m */; };
@@ -46,7 +44,6 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
-		9A23AA5D1D8E45E20077F37E /* MJRefresh */ = {isa = PBXFileReference; lastKnownFileType = folder; name = MJRefresh; path = /Users/cocav/Desktop/WeChatLocationSend/WeChatLocationSend/LocationSend/MJRefresh; sourceTree = "<absolute>"; };
 		9A23AA651D8E48ED0077F37E /* MJRefreshAutoFooter.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = MJRefreshAutoFooter.h; sourceTree = "<group>"; };
 		9A23AA661D8E48ED0077F37E /* MJRefreshAutoFooter.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = MJRefreshAutoFooter.m; sourceTree = "<group>"; };
 		9A23AA671D8E48ED0077F37E /* MJRefreshBackFooter.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = MJRefreshBackFooter.h; sourceTree = "<group>"; };
@@ -346,9 +343,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				9A3EF4AC1D7EB26900376E15 /* LaunchScreen.storyboard in Resources */,
-				9A23AA5E1D8E45E20077F37E /* MJRefresh in Resources */,
 				9AAD6DCC1DFFF3580030F151 /* greenPin_lift.png in Resources */,
-				9A23AA9E1D8E48ED0077F37E /* MJRefresh.bundle in Resources */,
 				9A3EF4D21D7ED51B00376E15 /* QMapKit.bundle in Resources */,
 				9A870DDF1D87A2C100548E24 /* dtz.jpg in Resources */,
 				9A3EF4A91D7EB26900376E15 /* Assets.xcassets in Resources */,
