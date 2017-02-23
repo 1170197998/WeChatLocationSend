@@ -30,6 +30,23 @@
     [super viewDidLoad];
     
     self.automaticallyAdjustsScrollViewInsets = false;
+    [self setupTableView];
+    [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(refreshData:) name:SearchResultGetPoiSearchResult object:nil];
+}
+
+- (void)viewWillAppear:(BOOL)animated
+{
+    [super viewWillAppear:animated];
+    self.pageIndex = 1;
+}
+
+- (void)dealloc
+{
+    [[NSNotificationCenter defaultCenter] removeObserver:self];
+}
+
+- (void)setupTableView
+{
     self.tableView = [[UITableView alloc] initWithFrame:CGRectMake(0, 64, SCREEN_WIDTH, SCREEN_HEIGHT - 64) style:UITableViewStylePlain];
     self.tableView.dataSource = self;
     self.tableView.delegate = self;
@@ -46,19 +63,6 @@
     footer.stateLabel.font = [UIFont systemFontOfSize:14];
     // 设置颜色
     footer.stateLabel.textColor = [UIColor blackColor];
-    
-    [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(refreshData:) name:SearchResultGetPoiSearchResult object:nil];
-}
-
-- (void)viewWillAppear:(BOOL)animated
-{
-    [super viewWillAppear:animated];
-    self.pageIndex = 1;
-}
-
-- (void)dealloc
-{
-    [[NSNotificationCenter defaultCenter] removeObserver:self];
 }
 
 - (void)loadPastData

@@ -55,7 +55,6 @@
         _searchController.delegate = self;
         [_searchController.searchBar sizeToFit];
         _searchController.searchBar.placeholder = @"搜索地点";
-        self.topTableView.tableHeaderView = self.searchController.searchBar;
     }
     return _searchController;
 }
@@ -71,11 +70,8 @@
 - (void)viewDidLoad
 {
     [super viewDidLoad];
-    self.navigationController.navigationBar.translucent = YES;
-    self.pageIndex = 1;
-    self.navigationItem.leftBarButtonItem = [[UIBarButtonItem alloc] initWithTitle:@"返回" style:UIBarButtonItemStyleDone target:self action:@selector(clickLeftBarButtonItem)];
-    self.navigationItem.rightBarButtonItem = [[UIBarButtonItem alloc] initWithTitle:@"发送" style:UIBarButtonItemStyleDone target:self action:@selector(clickRightBarButtonItem)];
     
+    [self setNavigationBar];
     [self setTopTableView];
     [self setMapView];
     [self setMainTableView];
@@ -96,9 +92,27 @@
     };
 }
 
-- (void)clickLeftBarButtonItem
+- (void)viewWillAppear:(BOOL)animated
 {
-    [self dismissViewControllerAnimated:YES completion:nil];
+    [super viewWillAppear:animated];
+    self.isNeedLocation = YES;
+    self.object = [[NSObject alloc] init];
+}
+
+- (void)viewWillDisappear:(BOOL)animated
+{
+    [super viewWillDisappear:animated];
+    self.isNeedLocation = NO;
+    self.object = nil;
+    [self.dataList removeAllObjects];
+    [self.mapView.delegate mapViewDidStopLocatingUser:self.mapView];
+}
+
+- (void)setNavigationBar
+{
+    self.navigationController.navigationBar.translucent = YES;
+    self.pageIndex = 1;
+    self.navigationItem.rightBarButtonItem = [[UIBarButtonItem alloc] initWithTitle:@"发送" style:UIBarButtonItemStyleDone target:self action:@selector(clickRightBarButtonItem)];
 }
 
 - (void)clickRightBarButtonItem
@@ -106,9 +120,10 @@
     [self dismissViewControllerAnimated:YES completion:nil];
     //发送位置时截图
     [self.mapView takeSnapshotInRect:self.mapView.bounds withCompletionBlock:^(UIImage *resultImage, CGRect rect) {
-        //resultImage是截取好的图片,上传到服务器,接收方显示
+        //resultImage是截取好的图片
+        //同时发送当前位置数据
+        //self.mapView.centerCoordinate.latitude,self.mapView.centerCoordinate.longitude
     }];
-    NSLog(@"%f--%f",self.mapView.centerCoordinate.latitude,self.mapView.centerCoordinate.longitude);
 }
 
 - (void)setTopTableView
@@ -166,22 +181,7 @@
     [self.view addSubview:self.imageViewAnntation];
 }
 
-- (void)viewWillAppear:(BOOL)animated
-{
-    [super viewWillAppear:animated];
-    self.isNeedLocation = YES;
-    self.object = [[NSObject alloc] init];
-}
-
-- (void)viewWillDisappear:(BOOL)animated
-{
-    [super viewWillDisappear:animated];
-    self.isNeedLocation = NO;
-    self.object = nil;
-    [self.dataList removeAllObjects];
-    [self.mapView.delegate mapViewDidStopLocatingUser:self.mapView];
-}
-
+//复位
 - (void)clickResetButton
 {
     CLLocationCoordinate2D center = self.mapView.userLocation.coordinate;
